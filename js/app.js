@@ -1,14 +1,14 @@
 function Game(container) {
   var scope = this;
-  scope.visible = true;
-  scope.translateCoords = true;
+  scope.visible = false;
+  scope.centerCamera = true;
   scope.playSound = true;
   scope.playing = false;
   scope.container = container;
   scope.direction = 0;
   scope.keys = {
     38: 'forward',
-    41: 'backward',
+    40: 'backward',
     39: 'right',
     37: 'left'
   };
@@ -106,7 +106,7 @@ function Game(container) {
   };
 
   this.worldToCam = function (v) {
-    return scope.translateCoords ? scope.translation.clone().add(v) : v;
+    return scope.centerCamera ? scope.translation.clone().add(v) : v;
   };
 
   this.drawHud = function (ctx) {
@@ -171,6 +171,7 @@ function SoundPlayer(context) {
     // http://freesound.org/people/Tewkesound/sounds/140147/
     var urls = ['position.wav'];
     var scope = this;
+    this.context = context;
     this.isPlaying = false;
     var loader = new BufferLoader(context, urls, function (buffers) {
         scope.buffer = buffers[0];
@@ -183,10 +184,10 @@ function SoundPlayer(context) {
       source.buffer = this.buffer;
       source.loop = true;
       var panner = context.createPanner();
-      //panner.coneOuterGain = 0.1;
-      //panner.coneOuterAngle = 180;
-      //panner.coneInnerAngle = 20;
-      panner.rolloffFactor = 0.05;
+      panner.coneOuterGain = 0.1;
+      panner.coneOuterAngle = 250;
+      panner.coneInnerAngle = 40;
+      panner.rolloffFactor = 0.01;
       panner.connect(context.destination);
       source.connect(panner);
       source.noteOn(0);
@@ -213,6 +214,8 @@ function SoundPlayer(context) {
         context.listener.setOrientation(orient.x, orient.y, 0, 0, 0, 1);
         context.listener.setPosition(player.x, player.y, 0);
         scope.panner.setPosition(objective.x, objective.y, 0);
+        //orient = orient.negate();
+        scope.panner.setOrientation(orient.x, orient.y, 0, 0, 0, -1);
       } else {
         scope.stop();
       }
@@ -296,13 +299,13 @@ function Gameplay() {
 
 window.onload = function () {
   game = new Game(document.body);
-  var gui = new dat.GUI();
+  gui = new dat.GUI();
   gui.add(game, 'start');
   gui.add(game, 'testFront');
   gui.add(game, 'testBack');
   gui.add(game, 'visible');
   gui.add(game, 'playSound');
-  gui.add(game, 'translateCoords');
+  gui.add(game, 'centerCamera');
   game.start();
   var player = gui.addFolder('Player');
   player.add(game.gameplay.player, 'direction', 0, 360).listen();
@@ -310,9 +313,8 @@ window.onload = function () {
   player.add(game.gameplay.player.position, 'x', -300, 300).listen();
   player.open();
   var objective = gui.addFolder('Objective');
-  objective.add(game.gameplay.objective, 'direction', 0, 360);
   objective.add(game.gameplay.objective.position, 'y', -300, 300);
   objective.add(game.gameplay.objective.position, 'x', -300, 300);
-  objective.open();
+  //objective.open();
 };
 
