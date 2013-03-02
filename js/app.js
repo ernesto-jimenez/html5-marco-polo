@@ -44,9 +44,40 @@ function Game(container) {
           event.preventDefault();
         }
       });
+
+      // Avoid Scrolling on iPhone/iPad
+      document.body.addEventListener('touchmove', function (event) {
+        event.preventDefault();
+      });
+
+      Hammer(document.body).on('dragleft', function (event) {
+        scope.instruction['left'] = true;
+        event.preventDefault();
+      });
+
+      Hammer(document.body).on('dragright', function (event) {
+        scope.instruction['right'] = true;
+        event.preventDefault();
+      });
+
+      Hammer(document.body).on('dragup', function (event) {
+        scope.instruction['forward'] = true;
+        event.preventDefault();
+      });
+
+      Hammer(document.body).on('dragdown', function (event) {
+        scope.instruction['backward'] = true;
+        event.preventDefault();
+      });
+
+      Hammer(document.body).on('dragend', function (event) {
+        scope.instruction = {};
+        event.preventDefault();
+      });
     }
 
     scope.gameplay.start();
+    scope.sound.play();
 
     onWindowResize();
     scope.playing = true;
@@ -100,7 +131,6 @@ function Game(container) {
   }
 
   this.updateTranslation = function () {
-    scope.playing = true;
     scope.translation = scope.translation || new THREE.Vector3();
     scope.translation.subVectors(scope.center, scope.gameplay.player.position);
   };
@@ -242,10 +272,11 @@ function Gameplay() {
   };
 
   this.start = function () {
-    this.player.position.set(200, 200, 0);
-    this.player.direction = 90;
+    this.player.position.set(Math.floor((Math.random() * 360)), Math.floor((Math.random() * 360)), 0);
+    this.player.direction = Math.floor((Math.random() * 360));
     this.objective.position.set(100, 100, 0);
     this.objective.direction = 0;
+    if (scope.winsGame()) scope.start();
   };
 
   this.relativePosition = function () {
@@ -311,10 +342,11 @@ window.onload = function () {
   player.add(game.gameplay.player, 'direction', 0, 360).listen();
   player.add(game.gameplay.player.position, 'y', -300, 300).listen();
   player.add(game.gameplay.player.position, 'x', -300, 300).listen();
-  player.open();
+  //player.open();
   var objective = gui.addFolder('Objective');
   objective.add(game.gameplay.objective.position, 'y', -300, 300);
   objective.add(game.gameplay.objective.position, 'x', -300, 300);
   //objective.open();
+  gui.close();
 };
 
