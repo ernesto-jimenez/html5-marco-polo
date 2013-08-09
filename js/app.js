@@ -13,7 +13,7 @@ function Game(container) {
     37: 'left'
   };
   scope.gameplay = new Gameplay();
-  scope.sound = new SoundPlayer(new webkitAudioContext());
+  scope.sound = new SoundPlayer(new (window.AudioContext || webkitAudioContext)());
 
   this.testFront = function () {
     scope.gameplay.player.position.set(100, 200);
@@ -214,13 +214,14 @@ function SoundPlayer(context) {
       source.buffer = this.buffer;
       source.loop = true;
       var panner = context.createPanner();
+      panner.panningModel = "equalpower";
       panner.coneOuterGain = 0.1;
       panner.coneOuterAngle = 250;
       panner.coneInnerAngle = 40;
       panner.rolloffFactor = 0.01;
       panner.connect(context.destination);
       source.connect(panner);
-      source.noteOn(0);
+      source.start(0);
       scope.source = source;
       scope.panner = panner;
       scope.isPlaying = true;
@@ -228,7 +229,7 @@ function SoundPlayer(context) {
     };
 
     this.stop = function () {
-      if(scope.source) scope.source.noteOff(0);
+      if(scope.source) scope.source.stop(0);
       scope.isPlaying = false;
     };
 
